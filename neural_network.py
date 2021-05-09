@@ -10,11 +10,20 @@ def linear(z, derivative=False):
         return a, da
     return a
 
-def sigmoid(z, derivative=False):
-    # for classification problems
+def logistic(z, derivative=False):
+    # for Multi-Label classification problems
     a = 1 / (1 + np.exp(-z))
     if derivative:
-        da = a * (1 - a)
+        da = np.ones(z.shape)     
+        return a, da
+    return a
+
+def softmax(z, derivative=False):
+    # for Multi-Class clasification problems
+    e = np.exp(z - np.max(z, axis=0))
+    a = e / np.sum(e, axis=0)
+    if derivative:
+        da = np.ones(z.shape)
         return a, da
     return a
 
@@ -38,7 +47,7 @@ class OLN:
         '''
         
         self.w = -1 + 2 * np.random.rand(n_outputs, n_inputs) # matrix of synaptic weights
-        self.b = -1 + 2 * np.random.rand(n_outputs)           # bias vector of every neuron
+        self.b = -1 + 2 * np.random.rand(n_outputs, 1)        # bias vector of every neuron
         self.f = activation_function                          # neural network activation function
     
     def _batcher(self, X, Y, batch_size=1):
@@ -68,7 +77,7 @@ class OLN:
                 # propagation
                 Z = np.dot(self.w, mX) + self.b
                 # get the result of the activation functionand and its derivative
-                Ypred, DY = self.f(Z, derivate=True)
+                Ypred, DY = self.f(Z, derivative=True)
                 # local gradient
                 lg = (mY-Ypred) * DY
                 # adjust the synaptic weights and the bias vector
